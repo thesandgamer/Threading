@@ -6,7 +6,6 @@ using namespace std;
 using std::cout;
 using std::endl;
 
-const int MatrixSize = 4;
 
 /*
 class Task {
@@ -30,27 +29,13 @@ private:
 void doFunction() { cout << "Function" << "\n"; }
 */
 
-/*
-int CalculateMatrixNumber(const int* x, const int* y)	//x = première matrice en vertkcal y = deuxièle matrice
-{
-	
-	cout << x[0] << " * " << y[0] << " +" << "\n";
-	cout << x[1] << " * " << y[1] << " +" << "\n";
-	cout << x[2] << " * " << y[2] <<"\n";
+const int MatrixSize = 4;
 
-
-	cout <<" = " << x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
-	cout << "\n";
-	cout << "\n";
-
-	return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
-
-};*/
 
 int CalculateMatrixNumber(const vector<int> x, const vector<int> y)	//x = première matrice en vertkcal y = deuxièle matrice
 {
 	int finalInt = NULL; 
-	for (size_t i = 0; i < MatrixSize; i++)
+	for (size_t i = 0; i < MatrixSize; i++)//Calcul chaque valeur
 	{
 		cout << x.at(i) << " * " << y.at(i) << " +" << "\n";
 		finalInt += x.at(i) * y.at(i);
@@ -96,29 +81,30 @@ int main() {
 	vector<int> matCol;
 
 
-	for (size_t x = 0; x < MatrixSize; x++) // Calculate the final position of maxtrix
+	for (size_t x = 0; x < MatrixSize; x++) // 
 	{
-		for (size_t y = 0; y < MatrixSize; y++) // Calculate the final position of maxtrix
+		for (size_t y = 0; y < MatrixSize; y++) // 
 		{
-			for (size_t i = 0; i < MatrixSize; i++)
+			matCol.clear();//On clear mat col pour pas qu'il en reste du passage précédant
+
+			for (size_t i = 0; i < MatrixSize; i++)	//Fait une copie des valeur de colone de la 2 ème matrice
 			{
 				matCol.push_back(Matrix2[i][x]);
 			}
-			const vector<int> ligne(Matrix1[y], Matrix1[y] + sizeof(Matrix1[y]) / sizeof(Matrix1[y][0]));
+			const vector<int> ligne(Matrix1[y], Matrix1[y] + sizeof(Matrix1[y]) / sizeof(Matrix1[y][0]));//Fait une copie de la ligne y de la matrice 1
 			
-			threads.emplace_back(
-				([=, &FinalMatrix]() {			
-					FinalMatrix[y][x] = CalculateMatrixNumber(ligne, matCol);
+			threads.emplace_back(	//On ajoute la fonction dans la liste de threads
+				([=, &FinalMatrix]() {		//On passe le tout par copie, sauf pour la valeur final matrix	
+					FinalMatrix[y][x] = CalculateMatrixNumber(ligne, matCol);//On set la valeur de la matrice au résultat 
 
 					})
 			);
-			matCol.clear();
 
 			
 		}
 	}
 	
-	for (size_t i = 0; i < threads.size(); i++)
+	for (size_t i = 0; i < threads.size(); i++)//On rejoins tout les threads
 	{
 		threads[i].join();
 	}
