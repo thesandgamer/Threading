@@ -7,125 +7,52 @@ using std::cout;
 using std::endl;
 
 
-/*
-class Task {
-public:
-
-	//Execution operator = operator ()
-	void operator()() const {
-		doSomething();
-		doSomethingElse();
-	}
-
-private:
-
-	void doSomething() const {
-		cout << "Something" << "\n";
-	}
-	void doSomethingElse() const {
-		cout << "Something else" << "\n";
-	}
-};
-void doFunction() { cout << "Function" << "\n"; }
-*/
-
-const int MatrixSize = 4;
-
-
-int CalculateMatrixNumber(const vector<int> x, const vector<int> y)	//x = première matrice en vertkcal y = deuxièle matrice
+int SumList(vector<int> list)
 {
-	int finalInt = NULL; 
-	for (size_t i = 0; i < MatrixSize; i++)//Calcul chaque valeur
+	int sum{ 0 };
+	for (int var : list)
 	{
-		cout << x.at(i) << " * " << y.at(i) << " +" << "\n";
-		finalInt += x.at(i) * y.at(i);
+		sum += var;
 	}
-	cout << finalInt << "\n" << "\n";
-
-	return finalInt;
-
-};
+	return sum;
+}
 
 int main() {
 
-	/*
-	const int Matrix1[3][3] = {
-   {1, 2, 3,} ,  
-   {4, 5, 6,} ,  
-   {7, 8, 9}
-						};
-	const int Matrix2[3][3] = {
-   {10, 11, 12,} ,
-   {13, 14, 15,} ,
-   {16, 17, 18}
-	};*/
-
-	const int Matrix1[4][4] = {
-   {1, 2, 3, 4 } ,
-   {5, 6, 7, 8} ,
-   {9 , 10 , 11, 12},
-   {13 , 14 , 15, 16},
-	};
-	const int Matrix2[4][4] = {
-   {17, 18, 19,20} ,
-   {21, 22, 23,24} ,
-   {25, 26, 27,28},
-   {29, 30, 31,32},
-	};
-
-	vector<vector<int>> FinalMatrix{ MatrixSize, vector<int>(MatrixSize) };
+	vector<int> list{ 1,2,3,4,5,6,7};
+	int sum {0};
 
 
-	vector <std::thread> threads;
-
-	vector<int> matCol;
-
-
-	for (size_t x = 0; x < MatrixSize; x++) // 
-	{
-		for (size_t y = 0; y < MatrixSize; y++) // 
-		{
-			matCol.clear();//On clear mat col pour pas qu'il en reste du passage précédant
-
-			for (size_t i = 0; i < MatrixSize; i++)	//Fait une copie des valeur de colone de la 2 ème matrice
-			{
-				matCol.push_back(Matrix2[i][x]);
-			}
-			const vector<int> ligne(Matrix1[y], Matrix1[y] + sizeof(Matrix1[y]) / sizeof(Matrix1[y][0]));//Fait une copie de la ligne y de la matrice 1
-			
-			threads.emplace_back(	//On ajoute la fonction dans la liste de threads
-				([=, &FinalMatrix]() {		//On passe le tout par copie, sauf pour la valeur final matrix	
-					FinalMatrix[y][x] = CalculateMatrixNumber(ligne, matCol);//On set la valeur de la matrice au résultat 
-
-					})
-			);
-
-			
-		}
-	}
 	
-	for (size_t i = 0; i < threads.size(); i++)//On rejoins tout les threads
+	//Divide List
+	int dividingNumber = 3; //En combien de sous table on divise la liste
+	vector<vector<int>> sublists;
+	int old = 0;
+	for (size_t i = 0; i < dividingNumber; i++)
 	{
-		threads[i].join();
+		vector<int> sublist;
+		float endNumber =(i+1) * (float) ((float)list.size() / dividingNumber);
+		sublist.assign(list.begin() + old, list.begin() + endNumber);
+		sublists.push_back(sublist);
+		old = endNumber;
 	}
-	cout << endl;
 
-
-
+	//Get Sum for all sub lits
+	for (vector<int> var : sublists)
+	{
+		sum += SumList(var);
+	}
 
 
 	/*
-	// Thread with a class that implements () operator (uses rvalue)
-	std::thread t0{ Task() };	//Créer un thread pour une classe : appel l'operator ()
-	// Thread with lambda
-	std::thread t1([] {			//Créer un thread pour une fonction
-		doFunction();
-
-		});
-	// Launch several times your program to remark the order is not deterministic
-	t0.join();
-	t1.join();
+	for (int var : list)
+	{
+		sum += var;
+	}
 	*/
+
+	cout << sum << endl;
+
 	return 0;
 
 }
