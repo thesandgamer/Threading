@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Threading\Threading.cpp">
+    <ClCompile Include="ThreadingEx02.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
