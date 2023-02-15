@@ -20,12 +20,24 @@ std::mutex m;
 int SumList(vector<int> list)
 {
 	std::lock_guard<std::mutex> guard(m);
+	int sum{ list.at(0) };
+
+	for (size_t i = 1; i < list.size(); i++)
+	{
+		sum += list.at(i);
+	}
+	/* //Old don't work with negative
 	int sum{ 0 };
+
 	for (int var : list)
 	{
 		sum += var;
-	}
-	FinalSum += sum;
+	}*/
+	//cout << " FinalSum= "<< FinalSum  << " - " << sum << endl;
+
+	cout << " " << sum << " - ";
+	FinalSum -= sum;
+
 
 	return sum;
 }
@@ -50,12 +62,15 @@ void DisplayEvensNumbers()
 int main() {
 
 	vector<int> list{ 1,2,3,4,5,6,7};
-	int sum {0};//Total
+	int finalSum {-0};//Total
 
 	vector <std::thread> threads;//To store the threads for sum
 
 
 	//Divide List
+	for (size_t i = 0; i < 10; i++)
+	{
+
 	int dividingNumber = 3; //En combien de sous table on divise la liste
 	vector<vector<int>> sublists;
 	int old = 0;
@@ -72,8 +87,8 @@ int main() {
 	for (vector<int> var : sublists)
 	{
 		threads.emplace_back(
-			([=, &sum]() {
-				sum += SumList(var);
+			([=, &finalSum]() {
+			finalSum -= SumList(var);
 				})
 		);
 		
@@ -97,14 +112,23 @@ int main() {
 	}
 	*/
 
-	cout << sum << "\n";	
-	cout << FinalSum << "\n" << endl; //The sum with mutex
+	cout << "Sum with return: " << finalSum << "\n";
+	//cout <<"Sum with global variable: " << FinalSum << "\n" << endl; //The sum with mutex
+	cout <<  "_________________________" << endl;
+	FinalSum = 0;
+	finalSum = 0;
+	threads.clear();
 
+	}
+
+
+	//-----------------------
+	/*
 	thread t1(DisplayEvensNumbers);
 	thread t2(DisplayEvensNumbers);
 
 	t1.join();
-	t2.join();
+	t2.join();*/
 
 	
 
