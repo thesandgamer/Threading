@@ -14,59 +14,113 @@ using std::chrono::high_resolution_clock;
 
 
 //------------]To add add element in a list[-------------//
-int FinalSum;
+#pragma region Sum a list
+
+int GLOBALSUM;
 std::mutex m;
 
 int SumList(vector<int> list)
 {
-	std::lock_guard<std::mutex> guard(m);
 	int sum{ 0 };
 	for (int var : list)
 	{
 		sum += var;
 	}
-	FinalSum += sum;
+	GLOBALSUM += sum;
 
 	return sum;
 }
+
+int SumListWithoutMutex(vector<int> list)
+{
+	return SumList(list);
+}
+
+int SumListWithMutex(vector<int> list)
+{
+	std::lock_guard<std::mutex> guard(m);
+	return SumList(list);
+}
+
+
+vector<vector<int>> DivideList(vector<int>& list, int dividingNumber = 3)
+{
+	int old = 0;
+	vector<vector<int>> sublists;
+
+	for (size_t i = 0; i < dividingNumber; i++)
+	{
+		vector<int> sublist;
+		float endNumber = (i + 1) * (float)((float)list.size() / dividingNumber);
+		sublist.assign(list.begin() + old, list.begin() + endNumber);
+		sublists.push_back(sublist);
+		old = endNumber;
+	}
+	return sublists;
+}
+
+#pragma endregion
+
 //----------------------------------------------------//
 
+//------------]To display odd and even numbers[-------//
+#pragma region Odd And Evens Number
 
+int i = 0; //variable globale pour que les boucles sont sync
 std::mutex m2;
 void DisplayEvensNumbers()
 {
-	std::lock_guard<std::mutex> guard(m2);
-
-	for (size_t i = 0; i <= 1000; i++)
+	//cout << "Display evens number with mutex:" << "\n";
+	while ( i < 1000 )
 	{
 		if (i % 2 == 0)
 		{
+			std::lock_guard<std::mutex> guard(m2);//On lock sur le même mutex que celui d'avant
+
+			i++;
+		
+			cout << "Function1: ";
 			cout << i << "\n";
 		}
 	}
+	cout << endl;
 }
+
+void DisplayOddNumbers()
+{
+	//cout << "Display odd number with mutex:" << "\n";
+
+	while (i < 1000)
+	{
+		if (i % 2 != 0)
+		{
+			std::lock_guard<std::mutex> guard(m2);//On lock sur le même mutex que celui d'avant
+
+			i++;
+		
+			cout << "Function2: ";
+			cout << i << "\n";
+
+		}
+	}
+	cout << endl;
+}
+
+#pragma endregion
+//----------------------------------------------------//
 
 
 int main() {
 
 	vector<int> list{ 1,2,3,4,5,6,7};
-	int sum {0};//Total
 
+	int sum {0};//Total
 	vector <std::thread> threads;//To store the threads for sum
 
 
 	//Divide List
-	int dividingNumber = 3; //En combien de sous table on divise la liste
-	vector<vector<int>> sublists;
-	int old = 0;
-	for (size_t i = 0; i < dividingNumber; i++)
-	{
-		vector<int> sublist;
-		float endNumber =(i+1) * (float) ((float)list.size() / dividingNumber);
-		sublist.assign(list.begin() + old, list.begin() + endNumber);
-		sublists.push_back(sublist);
-		old = endNumber;
-	}
+	vector<vector<int>> sublists = DivideList(list);
+
 
 	//Get Sum for all sub lits
 	for (vector<int> var : sublists)
@@ -91,17 +145,18 @@ int main() {
 
 
 	/*
+	sum = 0;
 	for (int var : list)
 	{
 		sum += var;
 	}
 	*/
 
-	cout << sum << "\n";	
-	cout << FinalSum << "\n" << endl; //The sum with mutex
+	cout <<"Sum with local variable: " << sum << "\n";
+	cout <<"Sum with global variable: " << GLOBALSUM << "\n" << endl;
 
 	thread t1(DisplayEvensNumbers);
-	thread t2(DisplayEvensNumbers);
+	thread t2(DisplayOddNumbers);
 
 	t1.join();
 	t2.join();
