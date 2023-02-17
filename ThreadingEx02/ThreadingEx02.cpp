@@ -66,7 +66,7 @@ vector<vector<int>> DivideList(vector<int>& list, int dividingNumber = 3)
 //------------]To display odd and even numbers[-------//
 #pragma region Odd And Evens Number
 
-int i = 0; //variable globale pour que les boucles sont sync
+int i = -1; //variable globale pour que les boucles sont sync
 std::mutex m2;
 void DisplayEvensNumbers()
 {
