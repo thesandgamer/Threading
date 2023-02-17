@@ -114,17 +114,20 @@ public:
 
         }
         newOrder.clientWhoMakeTheOrder = this;
-
-        orderPromise->set_value(newOrder);
         orderMade = newOrder;
         cout << "Client make order:\n ";
         newOrder.DisplayOrder();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        orderPromise->set_value(newOrder);
+
         
         return newOrder;
 
     }
 
-    promise<Order>* orderPromise;
+    promise<Order>* orderPromise; //Promesse faite au seveur de lui donner le plat qu'il veut 
 
 
 private:
@@ -154,6 +157,7 @@ public:
         cout << "Waiter receive odrer from client" << " \n ";
         order.DisplayOrder();
 
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         //On peut mettre un delay pour le temps d'ammener la commande
         giveOrderToChiefPromise->set_value(order);
 
@@ -186,6 +190,15 @@ public:
         cout << "Receive: " << ingredients.at(0).Name << " + " << ingredients.at(1).Name << " + "<< ingredients.at(2).Name <<" \n " << endl;
     }
 
+    void GiveIngredients(vector<Ingredient>& ingredientsrReceive)
+    {
+        //Il y aura une promesse faite au chef de lui donner des ingredients
+        //Du coup on va set la valeur de cette promesse avec la liste des ingrédients finit 
+        PromiseToChiefToGiveIngredients->set_value(ingredientsrReceive);
+    }
+
+    promise<vector<Ingredient>>* PromiseToChiefToGiveIngredients{ nullptr };
+
 };
 
 class Chief
@@ -197,6 +210,7 @@ public:
         Order order = orderReceive.get();
         cout << "Chief receive order from waiter" << " \n ";
         order.DisplayOrder();
+        orderSaved = order;
 
         //
         if (!cookers.empty())
@@ -207,16 +221,49 @@ public:
             for (size_t i = 0; i < cookers.size(); i++)
             {
                 //Set la valeur de la promesse de l'ingrédient
-                orderPromise->set_value(ingredientsNeeded.at(i));
+                std::this_thread::sleep_for(std::chrono::seconds(3));
+
+                PromiseToCookersToGiveIngredients->set_value(ingredientsNeeded.at(i));
             }
 
         }
     }
 
+    void ReceiveIngredients(future<vector<Ingredient>>& ingredientsReceive)
+    {
+        vector<Ingredient> ingred = ingredientsReceive.get();
+        for (size_t i = 0; i < ingred.size(); i++)
+        {
+            ingredints.push_back(ingred.at(i));
+        }
+        cout << "Chief receive ingredient from cooker" << " \n ";
+        
+    }
 
+    void MakingOrder()
+    {
+        Order newOrder;
+        for (auto it = ingredints.begin(); it < ingredints.end(); it++)
+        {
+            newOrder.ingredients.push_back(*it);
+        }
+        newOrder.clientWhoMakeTheOrder = orderSaved.clientWhoMakeTheOrder;
+        //Va prendre tout les ingredients des cuisiniers, et en faire un Order 
+        //Va avoir promesse fait au serveur de lui donner un plat, va donc set value de la promesse
+        PromiseToWaiterToGiveOrder->set_value(newOrder);
+
+
+        orderSaved = Order();
+        ingredints.clear();
+    }
+
+
+    vector<Ingredient> ingredints;
+    Order orderSaved;
 
     vector<Cooker*> cookers{  };
-    promise<vector<Ingredient>>* orderPromise{ nullptr };//Promess aux cuisiniers
+    promise<vector<Ingredient>>* PromiseToCookersToGiveIngredients{ nullptr };//Promess aux cuisiniers de leur dire quel ingrédient
+    promise<Order>* PromiseToWaiterToGiveOrder{ nullptr };//Promess aux cuisiniers de leur dire quel ingrédient
 };
 
 
@@ -249,23 +296,28 @@ int main()
     //----------[Cuisinier qui attend de reçevoir les ordre du chef
     std::promise<vector<Ingredient>> promiseOrderFromCooker;  //Créer la promesse
     future<vector<Ingredient>> futurOrderFromCooker = promiseOrderFromCooker.get_future();   //On s'engage à avoir une value
-    chiefTest.orderPromise = &promiseOrderFromCooker;
+    chiefTest.PromiseToCookersToGiveIngredients = &promiseOrderFromCooker;
     thread cookerWaiForOrderThread(&Cooker::ReceiveIngrendientsDemand, &cookerTest, ref(futurOrderFromCooker));   //Envoie le futur dans un thread
 
+
     //----------[Chef qui attend les ingredients des cookers
+    /*
+    std::promise<vector<Ingredient>> promiseOrderFromCooker;  //Créer la promesse
+    future<vector<Ingredient>> futurOrderFromCooker = promiseOrderFromCooker.get_future();   //On s'engage à avoir une value
+    chiefTest.PromiseToCookersToGiveIngredients = &promiseOrderFromCooker;
+    thread cookerWaiForOrderThread(&Cooker::ReceiveIngrendientsDemand, &cookerTest, ref(futurOrderFromCooker));   //Envoie le futur dans un thread
+    */
 
 
-    //----------[Client qui attend de reçevoir son plat
+    //----------[Serveur qui attend de reçevoir le plat du cuisinier
+
+      //----------[Client qui attend de reçevoir son plat
     /*
     std::promise<Order> promiseWaiterToClient;  //Créer la promesse
     future<Order> futurOrderFromWaiter = promiseWaiterToClient.get_future();   //On s'engage à avoir une value
     waiterTest.giveOrderToClient = &promiseOrderFromClient;
     waiterWaiForOrderThread = thread(&Waiter::ReceiveOrder, &waiterTest, ref(futurOrderFromClient));   //Envoie le futur dans un thread
     */
-
-    //----------[Serveur qui attend de reçevoir le plat du cuisinier
-
-  
 
 
     clientTest.MakeOrder();
